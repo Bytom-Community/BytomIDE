@@ -5,7 +5,8 @@ const sNamespace = {
 }
 
 const GLOBAL = {
-    MIN_FONT_SIZE: 10
+    MIN_FONT_SIZE: 10,
+    MAX_UPLOAD_FILE_NUM: 10,
 }
   
 export {

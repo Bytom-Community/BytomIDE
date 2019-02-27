@@ -15,8 +15,9 @@
 
         </slvuetree>
         <div class="contextmenu" ref="contextmenu" v-show="contextMenuIsVisible">
-            <div @click="rename">重命名</div>
-            <div @click="remove">删除</div>
+            <div @click="rename">{{ $t('FolderMenuTitle.Rename') }}</div>
+            <div @click="saveas">{{ $t('FolderMenuTitle.Saveas') }}</div>
+            <div @click="remove">{{ $t('FolderMenuTitle.Remove') }}</div>
         </div>
     </div>
    
@@ -85,14 +86,15 @@ export default {
             }
             this.$store.commit(`${sNamespace.PROJECT}/removeFile`, this.opNode.title)
             this.$emit("remove", this.opNode.title)
-            // const paths = this.$refs.tree.getSelected().map(node => node.path);
-            // console.log("remove paths", paths)
-            // this.$refs.tree.remove(paths)
         },
         rename() {
             this.contextMenuIsVisible = false;
             this.$emit('rename', this.opNode.title)
         },
+        saveas() {
+            this.contextMenuIsVisible = false;
+            this.$emit('saveas', this.opNode.title)
+        }
     }
 }
 </script>
@@ -106,12 +108,18 @@ export default {
     border-radius: 2px;
     cursor: pointer;
     font-size:13px;     
+    border-top: 1px solid;
+    border-left: 1px solid;
+    border-right: 1px solid;
+    border-color: rgba(81, 81, 90, 0.5);
 }
 .contextmenu > div {
     padding: 6px;
+    border-bottom: 1px solid;
+    border-bottom-color: rgba(81, 81, 90, 0.5)
 }
 .contextmenu > div:hover {
-    background-color: rgba(100, 100, 255, 0.5);
+    background-color: rgba(119, 159, 247, 0.5);
 }
 
 .toggle-img > img {

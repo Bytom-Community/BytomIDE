@@ -1,8 +1,8 @@
 <template>
-    <el-dialog title="设置"  :visible.sync="isVisible" @close="close" :show-close=false>
+    <el-dialog :title="$t('Setting.Title')"  :visible.sync="isVisible" @close="close" :show-close=false>
             <el-form :model="setting" >
-                <el-form-item label="字体大小" label-width="120px">
-                <el-select v-model="setting.fontSize" placeholder="请选择大小" @change="setFontSize">
+                <el-form-item :label="$t('Setting.FontSize')" label-width="120px">
+                <el-select v-model="setting.fontSize" :placeholder="$t('Setting.ChooseFontSize')" @change="setFontSize">
                     <el-option label="10pt" value="10pt"></el-option>
                     <el-option label="11pt" value="11pt"></el-option>
                     <el-option label="12pt" value="12pt"></el-option>
@@ -14,15 +14,15 @@
                     <el-option label="18pt" value="18pt"></el-option>
                 </el-select>
                 </el-form-item>
-                <el-form-item label="编辑模式" label-width="120px">
+                <el-form-item :label="$t('Setting.SetMode')" label-width="120px">
                         <el-radio-group v-model="setting.mode" @change="setMode">
                                 <el-radio-button label="default"></el-radio-button>
                                 <el-radio-button label="vim"></el-radio-button>
                                 <el-radio-button label="emacs"></el-radio-button>
                         </el-radio-group>
                 </el-form-item>
-                <el-form-item label="主题" label-width="120px">
-                        <el-select v-model="setting.theme" placeholder="请选择主题" @change="setTheme">
+                <el-form-item :label="$t('Setting.Theme')" label-width="120px">
+                        <el-select v-model="setting.theme" :placeholder="$t('Setting.ChooseTheme')" @change="setTheme">
                                 <el-option label="textmate" value="textmate"></el-option>
                                 <el-option label="monokai" value="monokai"></el-option>
                                 <el-option label="dracula" value="dracula"></el-option>
@@ -32,11 +32,26 @@
                                 <el-option label="eclipse" value="eclipse"></el-option>
                         </el-select>
                 </el-form-item>
+                <el-form-item :label="$t('Setting.AutoSave')" label-width="120px">
+                    <el-select v-model="setting.autoSave" :placeholder="$t('Setting.ChooseAutoSave')" @change="setAutoSave">
+                            <el-option label="0s" value="0"></el-option>
+                            <el-option label="5s" value="5"></el-option>
+                            <el-option label="10s" value="10"></el-option>
+                            <el-option label="20s" value="20"></el-option>
+                            <el-option label="30s" value="30"></el-option>
+                            <el-option label="60s" value="60"></el-option>
+                    </el-select>
+                </el-form-item>
+
+                <el-form-item :label="$t('Setting.Lang')" label-width="120px">
+                    <el-select v-model="setting.lang" :placeholder="$t('Setting.ChooseLang')" @change="setLang">
+                            <el-option label="English" value="en"></el-option>
+                            <el-option label="简体中文" value="zh"></el-option>
+                    </el-select>
+                </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
-                <!-- <el-button @click="cancel">取 消</el-button> -->
-                <!-- <el-button type="primary" @click="confirm">确 定</el-button> -->
-                <el-button type="primary" @click="confirm">保 存</el-button>
+                <el-button type="primary" @click="confirm">{{ $t('Setting.SaveBtn')}}</el-button>
             </div>
     </el-dialog>
 </template>
@@ -62,7 +77,7 @@ export default {
         }
     },
     mounted() {
-        console.log('setting', this.setting)
+        console.log("lang", this.form)
     },
     methods: {
         cancel() {
@@ -85,7 +100,11 @@ export default {
         setMode(m) {
             const editor = this.$store.state[sNamespace.EDITOR].editor
             setKeybinding(editor, m)
-        }
+        },
+        setLang(l) {
+            window.$vueI18n.locale = l
+        },
+        setAutoSave(t) {}
     }
 }
 </script>

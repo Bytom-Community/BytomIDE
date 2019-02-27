@@ -5,6 +5,8 @@ export default {
           fontSize: '',
           mode: '',
           theme: '',
+          lang: '',
+          autoSave: 0,
       },
     },
     mutations: {
