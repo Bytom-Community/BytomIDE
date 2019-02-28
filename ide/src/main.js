@@ -11,7 +11,11 @@ import VueI18n from 'vue-i18n'
 import LangEN from './locale/en'
 import LangZH from './locale/zh'
 
+import VueResource from 'vue-resource'
+
 Vue.use(VueI18n)
+Vue.use(VueResource)
+Vue.http.options.root = 'http://localhost:3000/v1'
 
 import {sNamespace} from './common/const.js'
 console.log(' store.state[sNamespace.SETTING].setting.',  store.state[sNamespace.SETTING].setting)

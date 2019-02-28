@@ -25,7 +25,9 @@ export default {
     ChooseTheme: 'Please choose theme',
     SaveBtn: 'Save',
     Lang: 'Language',
-    ChooseLang: 'Please choose language'
+    ChooseLang: 'Please choose language',
+    AutoSave: 'Auto Save',
+    ChooseAutoSave: 'Auto save interval',
   },
   Tool: {
     Operation: 'Operation',
@@ -33,5 +35,13 @@ export default {
     Command: 'Command',
     Deploy: 'Deploy',
     Run: 'Run',
-  }
+    Noop: 'Please select command',
+    Args: 'args',
+    InputArgs: 'Please input args with comma',
+    Result: 'Result',
+  },
+  Request: {
+    Error: 'Request Failed',
+  },
+ 
 }

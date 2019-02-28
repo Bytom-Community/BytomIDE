@@ -49,14 +49,21 @@
                 <el-tabs v-model="activeTab" type="border-card" @tab-click="handleClick">
                     <el-tab-pane label="CLI" name="cli">
                             <span>{{ $t('Tool.Operation') }}</span>
-                            <el-select v-model="clicmd" :placeholder="$t('Tool.Command')" style="width:100px;">
+                            <el-select v-model="clicmd" :placeholder="$t('Tool.Command')" style="width:100px;" @change="cliret=''">
                                     <el-option label="bin" value="bin"></el-option>
+                                    <el-option label="shift" value="shift"></el-option>
                                     <el-option label="instance" value="instance"></el-option>
                                     <el-option label="ast" value="ast"></el-option>
                             </el-select>
-                            <el-button>{{ $t('Tool.Excute') }}</el-button>
-                           
-                            
+                            <el-button @click="compile">{{ $t('Tool.Excute') }}</el-button>
+                            <div class="tool-args" v-show="clicmd=='instance'">
+                                    <span>{{ $t('Tool.Args') }}</span>
+                                    <el-input class="tool-args-input" :placeholder="$t('Tool.InputArgs')" v-model="cliargs" clearable></el-input>
+                            </div>
+                            <div class="tool-ret">
+                                <span>{{ $t('Tool.Result') }}</span>
+                                <el-input class="tool-ret-text" type="textarea" autosize v-model="cliret" :disabled="cliret.length==0"></el-input>
+                            </div>
                     </el-tab-pane>
                     <el-tab-pane :label="$t('Tool.Deploy')" name="deploy">{{ $t('Tool.Deploy') }}</el-tab-pane>
                     <el-tab-pane :label="$t('Tool.Run')" name="run">{{ $t('Tool.Run') }}</el-tab-pane>
@@ -84,7 +91,9 @@ export default {
             showFolder: true,
             showSetting: false,
             activeTab: 'cli',
-            clicmd: ''
+            clicmd: '',
+            cliret: '',
+            cliargs: '',
         }
     },
     computed: {
@@ -268,6 +277,35 @@ export default {
             this.showSetting = false
         },
         handleClick() {},
+        async compile() {
+            if (!this.clicmd ||this.clicmd == undefined|| this.clicmd.length == 0) {
+                this.$message(this.$t('Tool.Noop'))
+                return
+            }
+            const currentFile = this.$store.state[sNamespace.PROJECT].currentFile
+            const code = this.$store.state[sNamespace.PROJECT].codes[currentFile] || ''
+            try {
+                let url = `compile/${this.clicmd}`
+                let body = { Code: code }
+                if (this.clicmd == 'instance' && this.cliargs && this.cliargs != undefined &&this.cliargs.length > 0) {
+                    body['Args'] = this.cliargs.split(",")
+                }
+                const ret = await this.$http.post(url, body)
+                if (ret.body.status != "success") {
+                    this.$message(this.$t('Request.Error'))
+                    return
+                }
+                if (Object.keys(ret.body.data).length == 0) {
+                    return
+                }
+                this.cliret = ret.body.data[this.clicmd]
+            } catch(e) {
+                console.log(e)
+                this.$message(this.$t('Request.Error'))
+            }
+            
+            
+        },
         handleUpload(name, content) {
             let p = this.$store.state[sNamespace.PROJECT].projects[0]
             let fileName = generateFileName(name, p)
@@ -287,7 +325,7 @@ export default {
             FileSaver.saveAs(blob, name);
         },
         download() {
-            const JSZip = require("JSZip")
+            const JSZip = require("jszip")
             var zip = new JSZip()
             var folder = zip.folder("Contract");
             let p = this.$store.state[sNamespace.PROJECT].projects[0]
@@ -402,6 +440,21 @@ export default {
     width: 20%;
     height: calc(90vh+30px);
     /* border: 1px solid; */
+}
+
+.tool-args {
+    margin-top: 20px;
+}
+
+.tool-ret {
+    margin-top: 20px;
+ 
+}
+.tool-args-input {
+    margin-top: 20px;
+}
+.tool-ret-text {
+   margin-top: 20px;
 }
 
 img:hover {

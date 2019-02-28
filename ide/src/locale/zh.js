@@ -35,6 +35,13 @@ export default {
     Command: '命令',
     Deploy: '部署',
     Run: '运行',
-  }
+    Noop: '请选择命令',
+    Args: '参数',
+    InputArgs: '请输入参数, 以,隔开',
+    Result: '运行结果',
+  },
+  Request: {
+    Error: '请求失败',
+  },
  
 }
