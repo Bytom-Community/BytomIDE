@@ -1,7 +1,12 @@
 export default {
+  Lang: {
+    ZH: 'Chinese',
+    EN: 'English',
+  },
   FolderMenuTitle: {
     Rename: 'Rename',
-    Saveas: 'Save As',
+    Save: 'Save',
+    Saveas: 'Download',
     Remove: 'Delete',
   },
   AlertMessage: {
@@ -24,6 +29,7 @@ export default {
     Theme: 'Theme',
     ChooseTheme: 'Please choose theme',
     SaveBtn: 'Save',
+    CancelBtn: 'Cancel',
     Lang: 'Language',
     ChooseLang: 'Please choose language',
     AutoSave: 'Auto Save',
@@ -43,5 +49,4 @@ export default {
   Request: {
     Error: 'Request Failed',
   },
- 
 }

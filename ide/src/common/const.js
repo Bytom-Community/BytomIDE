@@ -1,16 +1,15 @@
-const sNamespace = {
+const Namespace = {
     PROJECT: "project",
     EDITOR: "editor",
     SETTING: 'setting',
 }
 
-const GLOBAL = {
-    MIN_FONT_SIZE: 10,
-    MAX_UPLOAD_FILE_NUM: 10,
+const Common = {
+    InitEditorTimeout: 10
 }
   
 export {
-    sNamespace,
-    GLOBAL
+    Namespace,
+    Common
 }
   

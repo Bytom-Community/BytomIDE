@@ -1,4 +1,7 @@
 const setFontSize = (editor, fs) => {
+    if (!fs || fs == undefined || fs.indexOf('pt') == -1) {
+        return
+    }
     editor.setOptions({
         fontSize: fs,
         enableBasicAutocompletion: true,
@@ -8,11 +11,17 @@ const setFontSize = (editor, fs) => {
 }
 
 const setTheme = (editor, theme) => {
-    require(`ace-builds/src-noconflict/theme-${theme}.js`)
-    editor.setTheme(`ace/theme/${theme}`)
+    if (!theme || theme == undefined) {
+        return
+    }
+    require(`ace-builds/src-noconflict/theme-${theme.trim()}.js`)
+    editor.setTheme(`ace/theme/${theme.trim()}`)
 }
 
 const setKeybinding = (editor, m) => {
+    if (!m || m == undefined) {
+        return
+    }
     if (m == "default") {
         editor.setKeyboardHandler(`ace/keyboard/ace`)
         return

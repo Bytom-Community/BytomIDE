@@ -9,13 +9,13 @@
 </el-upload>
 </template>
 <script>
-import {GLOBAL} from "../common/const.js"
 import {readUploadFile} from "../utils/reader.js"
+const config = require("../utils/config.js").config()
 export default {
     name: 'upload',
     computed: {
         maxUploadFile() {
-            return GLOBAL.MAX_UPLOAD_FILE_NUM
+            return config.folder.maxUploadFile
         }
     },
     methods: {
@@ -32,7 +32,7 @@ export default {
             }
         },
         handleUploadExceed(file, fileList) {
-            this.$message(this.$t("AlertMessage.UploadTooMuch", { max: GLOBAL.MAX_UPLOAD_FILE_NUM}))
+            this.$message(this.$t("AlertMessage.UploadTooMuch", { max: config.folder.maxUploadFile}))
         }
     }
 }

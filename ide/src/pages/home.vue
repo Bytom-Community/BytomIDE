@@ -46,7 +46,7 @@
                 <editor class="editor"></editor>
         </div>
         <div class="tools">
-                <el-tabs v-model="activeTab" type="border-card" @tab-click="handleClick">
+                <el-tabs v-model="activeTab" type="border-card" @tab-click="handleClick" class="tool-tab">
                     <el-tab-pane label="CLI" name="cli">
                             <span>{{ $t('Tool.Operation') }}</span>
                             <el-select v-model="clicmd" :placeholder="$t('Tool.Command')" style="width:100px;" @change="cliret=''">
@@ -78,11 +78,12 @@ import editor from '../components/editor'
 import folder from "../components/tree"
 import settingDialog from "../components/setting"
 import upload from "../components/upload"
-import {sNamespace, GLOBAL} from "../common/const.js"
+import {Namespace, Common} from "../common/const.js"
 import {readUploadFile} from "../utils/reader.js"
 import {generateFileName} from "../utils/generator.js"
-import {sleep} from "../utils/util.js"
+import {sleep, Ticker} from "../utils/util.js"
 import {setFontSize, setTheme, setKeybinding} from "../ace/editor.js"
+const config = require("../utils/config.js").config()
 export default {
     name: 'home',
     components: { editor, folder, settingDialog, upload },
@@ -94,49 +95,52 @@ export default {
             clicmd: '',
             cliret: '',
             cliargs: '',
+            codeTicker: null,
         }
     },
     computed: {
         selects() {
-            return this.$store.state[sNamespace.PROJECT].selects
+            return this.$store.state[Namespace.PROJECT].selects
         },
     },
     async created() {
         this.createDemoFile()
         await this.initEditor()
-        this.saveCode()
+        this.runSaveCodeTimer()
     },
     methods: {
         createDemoFile() {
-            const first = this.$store.state[sNamespace.PROJECT].projects[0]
+            const first = this.$store.state[Namespace.PROJECT].projects[0]
             if (first.children.length) {
                 return
             }
-            this.$store.commit(sNamespace.PROJECT + '/newFile', { title: "demo", isLeaf:true, isSelected: true })
+            this.$store.commit(Namespace.PROJECT + '/newFile', { title: "demo", isLeaf:true, isSelected: true })
         },
         async initEditor() {
+            let second = 0
             while(1) {
-                if (this.$store.state[sNamespace.EDITOR].editor == null) {
+                if (second > Common.InitEditorTimeout) {
+                    break
+                }
+                second++
+                if (this.$store.state[Namespace.EDITOR].editor == null) {
                     await sleep(1000)
                     continue
                 }
-                const editor = this.$store.state[sNamespace.EDITOR].editor
-                const setting = this.$store.state[sNamespace.SETTING].setting
+                const editor = this.$store.state[Namespace.EDITOR].editor
+                const setting = this.$store.state[Namespace.SETTING].setting
                 if (setting.fontSize.length == 0) {
-                    this.$store.commit(sNamespace.SETTING + '/init', { fontSize: "12pt", mode: 'default', theme: ' textmate' })
+                    this.$store.commit(Namespace.SETTING + '/init')
                 } else {
                     setFontSize(editor, setting.fontSize)
                     setKeybinding(editor, setting.mode)
                     setTheme(editor, setting.theme)
                 }
-                const currentFile = this.$store.state[sNamespace.PROJECT].currentFile
+                const currentFile = this.$store.state[Namespace.PROJECT].currentFile
                 if (currentFile.length == 0) {
                     return
                 }
-                const code = this.$store.state[sNamespace.PROJECT].codes[currentFile]
-                const session = editor.getSession()
-                session.setValue(code)
-                console.log('init editor finish')
+                this.updateEditor(currentFile)
                 break
             }
         },
@@ -149,66 +153,77 @@ export default {
                     this.$message(this.$t('AlertMessage.EmptyName'))
                     return
                 }
-                let p = this.$store.state[sNamespace.PROJECT].projects[0]
+                let p = this.$store.state[Namespace.PROJECT].projects[0]
                 let name = generateFileName(value, p)
                 if (name.length == 0) {
                     this.$message(this.$t('AlertMessage.DuplicatedFile'))
                     return
                 }
-                this.$store.commit(sNamespace.PROJECT + '/newFile', { title: name, isLeaf:true, isSelected: true })
-                this.$store.commit(`${sNamespace.PROJECT}/setCurrentFile`, name)
+                this.$store.commit(Namespace.PROJECT + '/newFile', { title: name, isLeaf:true, isSelected: true })
+                this.$store.commit(`${Namespace.PROJECT}/setCurrentFile`, name)
                 this.updateEditor(name)
             }).catch(() => {})
         },
         updateEditor(file) {
-            let code = this.$store.state[sNamespace.PROJECT].codes[file]
+            let code = this.$store.state[Namespace.PROJECT].codes[file]
             if (!code || code == undefined || !code.length) {
                 code = ''
             }
-            const session = this.$store.state[sNamespace.EDITOR].editor.getSession()
+            const session = this.$store.state[Namespace.EDITOR].editor.getSession()
             session.setValue(code)
         },
         commitCode() {
-            let editor = this.$store.state[sNamespace.EDITOR].editor
+            let editor = this.$store.state[Namespace.EDITOR].editor
             if (editor == null) {
                 return
             }
-            const currentFile = this.$store.state[sNamespace.PROJECT].currentFile
+            const currentFile = this.$store.state[Namespace.PROJECT].currentFile
             if (!currentFile || currentFile == undefined ||currentFile.length == 0) {
                 return
             }
             const session = editor.getSession()
-            this.$store.commit(`${sNamespace.PROJECT}/updateCode`, {
+            this.$store.commit(`${Namespace.PROJECT}/updateCode`, {
                 name: currentFile,
                 content: session.getValue(),
             })
         },
-        saveCode() {
-            let autoSave = this.$store.state[sNamespace.SETTING].setting.autoSave
+        runSaveCodeTimer() {
+            let autoSave = this.$store.state[Namespace.SETTING].setting.autoSave
             if (!autoSave || autoSave == undefined || parseInt(autoSave) == 0) {
                 // save immediately
-                let editor = this.$store.state[sNamespace.EDITOR].editor
+                let editor = this.$store.state[Namespace.EDITOR].editor
                 var _this = this
+                // stop ticker
+                if (this.codeTicker) {
+                    this.codeTicker.stop()
+                    this.codeTicker = null
+                }
                 editor.getSession().on("change", function(e) {
+                    if (_this.codeTicker) {
+                        return
+                    }
                     _this.commitCode()
                 })
                 return
             } 
-            let id = setInterval(()=>{
-                this.commitCode()
-            }, parseInt(autoSave) * 1000)
+            // reset the old one
+            if (this.codeTicker) {
+                this.codeTicker.reset(parseInt(autoSave) * 1000)
+                return
+            }
+            // start a new one
+            this.codeTicker = new Ticker(this.commitCode, parseInt(autoSave) * 1000)
         },
         isSelected(file) {
-            return  file == this.$store.state[sNamespace.PROJECT].currentFile
+            return  file == this.$store.state[Namespace.PROJECT].currentFile
         },
         select(file) {
-            this.$store.commit(`${sNamespace.PROJECT}/setCurrentFile`, file)
+            this.$store.commit(`${Namespace.PROJECT}/setCurrentFile`, file)
             this.updateEditor(file)
         },
         deSelect(file) {
             let index = this.selects.indexOf(file)
-            this.$store.commit(`${sNamespace.PROJECT}/deSelectFile`, file)
-            // this.selects = this.$store.state[sNamespace.PROJECT].selects
+            this.$store.commit(`${Namespace.PROJECT}/deSelectFile`, file)
             if (!this.isSelected(file)) {
                return
             }
@@ -222,7 +237,7 @@ export default {
             this.showFolder = !this.showFolder
         },
         changeFontSize(isIncre) {
-            let editor = this.$store.state[sNamespace.EDITOR].editor
+            let editor = this.$store.state[Namespace.EDITOR].editor
             let options =  editor.getOptions()
             if (!options || options == undefined || !options.fontSize) {
                 return
@@ -236,8 +251,8 @@ export default {
                 size ++
             } else {
                 size --
-                if (size < GLOBAL.MIN_FONT_SIZE) {
-                    size = GLOBAL.MIN_FONT_SIZE
+                if (size < config.setting.minFontSize) {
+                    size = config.setting.minFontSize
                 }
             }
             editor.setOptions({
@@ -254,15 +269,15 @@ export default {
                     this.$message(this.$t('AlertMessage.EmptyName'))
                     return
                 }
-                let p = this.$store.state[sNamespace.PROJECT].projects[0]
+                let p = this.$store.state[Namespace.PROJECT].projects[0]
                 let name = generateFileName(value, p)
                 if (name.length == 0) {
                     this.$message(this.$t('AlertMessage.DuplicatedFile'))
                     return
                 }
-                this.$store.commit(sNamespace.PROJECT + '/renameFile', { old: oldName, new: name })
-                if (this.$store.state[sNamespace.PROJECT].currentFile == oldName) {
-                    this.$store.commit(`${sNamespace.PROJECT}/setCurrentFile`, name)
+                this.$store.commit(Namespace.PROJECT + '/renameFile', { old: oldName, new: name })
+                if (this.$store.state[Namespace.PROJECT].currentFile == oldName) {
+                    this.$store.commit(`${Namespace.PROJECT}/setCurrentFile`, name)
                 }
                 this.$forceUpdate()
             }).catch(() => {})
@@ -275,6 +290,15 @@ export default {
         },
         confirmSetting() {
             this.showSetting = false
+            let autoSave = this.$store.state[Namespace.SETTING].setting.autoSave || 0
+            if (autoSave == 0 && this.codeTicker == null) {
+                return
+            }
+            if (this.codeTicker && this.codeTicker.interval() == parseInt(autoSave) * 1000) {
+                return
+            }
+            // auto save interval has updated
+            this.runSaveCodeTimer()
         },
         handleClick() {},
         async compile() {
@@ -282,8 +306,8 @@ export default {
                 this.$message(this.$t('Tool.Noop'))
                 return
             }
-            const currentFile = this.$store.state[sNamespace.PROJECT].currentFile
-            const code = this.$store.state[sNamespace.PROJECT].codes[currentFile] || ''
+            const currentFile = this.$store.state[Namespace.PROJECT].currentFile
+            const code = this.$store.state[Namespace.PROJECT].codes[currentFile] || ''
             try {
                 let url = `compile/${this.clicmd}`
                 let body = { Code: code }
@@ -307,19 +331,19 @@ export default {
             
         },
         handleUpload(name, content) {
-            let p = this.$store.state[sNamespace.PROJECT].projects[0]
+            let p = this.$store.state[Namespace.PROJECT].projects[0]
             let fileName = generateFileName(name, p)
             if (fileName.length == 0) {
                 this.$message(this.$t("AlertMessage.DuplicatedFile"))
                 return
             }
-            this.$store.commit(sNamespace.PROJECT + '/newFile', { title: fileName, isLeaf:true, isSelected: true })
-            this.$store.commit(`${sNamespace.PROJECT}/updateCode`, { name: fileName, content: content})
-            this.$store.commit(sNamespace.PROJECT + '/setCurrentFile', fileName)
+            this.$store.commit(Namespace.PROJECT + '/newFile', { title: fileName, isLeaf:true, isSelected: true })
+            this.$store.commit(`${Namespace.PROJECT}/updateCode`, { name: fileName, content: content})
+            this.$store.commit(Namespace.PROJECT + '/setCurrentFile', fileName)
             this.updateEditor(fileName)
         },
         saveas(name) {
-            let content = this.$store.state[sNamespace.PROJECT].codes[name] || ''
+            let content = this.$store.state[Namespace.PROJECT].codes[name] || ''
             var FileSaver = require('file-saver')
             var blob = new Blob([content], {type: "text/plain;charset=utf-8"});
             FileSaver.saveAs(blob, name);
@@ -328,9 +352,9 @@ export default {
             const JSZip = require("jszip")
             var zip = new JSZip()
             var folder = zip.folder("Contract");
-            let p = this.$store.state[sNamespace.PROJECT].projects[0]
+            let p = this.$store.state[Namespace.PROJECT].projects[0]
             for (let file of p.children) {
-                let fileContent = this.$store.state[sNamespace.PROJECT].codes[file.title] || ''
+                let fileContent = this.$store.state[Namespace.PROJECT].codes[file.title] || ''
                 folder.file(file.title, fileContent);
             }
             zip.generateAsync({type:"blob"}).then(function(content) {
@@ -441,7 +465,10 @@ export default {
     height: calc(90vh+30px);
     /* border: 1px solid; */
 }
-
+.tool-tab {
+    box-shadow: 0 0 0 0; 
+    -webkit-box-shadow:0 0 0 0;
+}
 .tool-args {
     margin-top: 20px;
 }
@@ -455,6 +482,7 @@ export default {
 }
 .tool-ret-text {
    margin-top: 20px;
+   
 }
 
 img:hover {

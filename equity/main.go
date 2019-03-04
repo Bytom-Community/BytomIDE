@@ -12,11 +12,13 @@ import (
 
 func main() {
 	equityAPI := api.NewAPI()
-	serverAddr := "127.0.0.1:8080"
+	// host := "localhost"
+	host := "0.0.0.0"
+	serverAddr := host + ":8080"
 	if len(os.Args) >= 2 {
 		port := flag.String("port", "p", "Server port")
 		flag.CommandLine.Parse(os.Args[1:])
-		serverAddr = fmt.Sprintf("127.0.0.1:%s", *port)
+		serverAddr = fmt.Sprintf("%s:%s", host, *port)
 	}
 	fmt.Printf("listenning on %s\n", serverAddr)
 	equityAPI.StartServer(serverAddr)

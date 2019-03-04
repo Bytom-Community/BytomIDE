@@ -1,4 +1,5 @@
 ide/node_modules/*
 test/*
 equity/equity
+equity/api/*_test.go
 

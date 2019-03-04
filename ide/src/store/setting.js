@@ -10,11 +10,21 @@ export default {
       },
     },
     mutations: {
-      setSetting(state,  kv) {
+      setValue(state,  kv) {
         state.setting[kv.key] = kv.value
       },
-      init(state,  s) {
+      update(state,  s) {
         state.setting = s
+      },
+      init(state) {
+        const config = require("../utils/config.js").config()
+        state.setting =  { 
+          fontSize:  config.setting.defaultFontSize + 'pt', 
+          mode:  config.setting.defaultMode, 
+          theme: config.setting.defaultTheme,
+          lang:  config.setting.defaultLang, 
+          autoSave: config.setting.defaultAutoSaveInterval
+        }
       },
     }
   }

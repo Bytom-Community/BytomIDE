@@ -24,7 +24,7 @@
 </template>
 <script>
 import slvuetree from "sl-vue-tree"
-import {sNamespace} from "../common/const.js"
+import {Namespace} from "../common/const.js"
 export default {
     name: 'tree',
     components: { slvuetree },
@@ -45,11 +45,11 @@ export default {
     },
     computed: {
         projects() {
-            return this.$store.state[sNamespace.PROJECT].projects
+            return this.$store.state[Namespace.PROJECT].projects
         },
     },
     created() {
-        this.nodes = this.$store.state[sNamespace.PROJECT].projects
+        this.nodes = this.$store.state[Namespace.PROJECT].projects
     },
     methods: {
         nodeclick(n, event) {
@@ -57,15 +57,15 @@ export default {
                 return
             }
             const level = n.level 
-            const session = this.$store.state[sNamespace.EDITOR].editor.getSession()
+            const session = this.$store.state[Namespace.EDITOR].editor.getSession()
             if (level == 1) {
-                this.$store.commit(`${sNamespace.PROJECT}/setCurrentFile`, '')
+                this.$store.commit(`${Namespace.PROJECT}/setCurrentFile`, '')
                 session.setValue('')
                 return
             }
             const name = n.title
-            this.$store.commit(`${sNamespace.PROJECT}/setCurrentFile`, name)
-            let code = this.$store.state[sNamespace.PROJECT].codes[name]
+            this.$store.commit(`${Namespace.PROJECT}/setCurrentFile`, name)
+            let code = this.$store.state[Namespace.PROJECT].codes[name]
             if (!code || code == undefined || !code.length) {
                 code = ''
             }
@@ -84,7 +84,7 @@ export default {
             if(!this.opNode || !this.opNode.title || !this.opNode.title.length) {
                 return
             }
-            this.$store.commit(`${sNamespace.PROJECT}/removeFile`, this.opNode.title)
+            this.$store.commit(`${Namespace.PROJECT}/removeFile`, this.opNode.title)
             this.$emit("remove", this.opNode.title)
         },
         rename() {

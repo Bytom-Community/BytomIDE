@@ -6,17 +6,17 @@ Vue.use(vuex)
 import project from './project'
 import editor from './editor'
 import setting from './setting'
-import {sNamespace} from "../common/const.js"
+import {Namespace} from "../common/const.js"
 import VuexPersistence from 'vuex-persist'
 const vuexLocal = new VuexPersistence({
   storage: window.localStorage,
-  modules: [sNamespace.PROJECT, sNamespace.SETTING],
+  modules: [Namespace.PROJECT, Namespace.SETTING],
 })
 let modules = {}
 
-modules[sNamespace.PROJECT] = project
-modules[sNamespace.EDITOR] = editor
-modules[sNamespace.SETTING] = setting
+modules[Namespace.PROJECT] = project
+modules[Namespace.EDITOR] = editor
+modules[Namespace.SETTING] = setting
 
 
 export default new vuex.Store({

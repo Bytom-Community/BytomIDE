@@ -1,7 +1,12 @@
 export default {
+  Lang: {
+    ZH: '简体中文',
+    EN: '英文',
+  },
   FolderMenuTitle: {
     Rename: '重命名',
-    Saveas: '另存为',
+    Save: '保存',
+    Saveas: '下载',
     Remove: '删除',
   },
   AlertMessage: {
@@ -24,6 +29,7 @@ export default {
     Theme: '主题',
     ChooseTheme: '请选择主题',
     SaveBtn: '保 存',
+    CancelBtn: '取 消',
     Lang: '语言',
     ChooseLang: '请选择语言',
     AutoSave: '自动保存',
@@ -43,5 +49,4 @@ export default {
   Request: {
     Error: '请求失败',
   },
- 
 }

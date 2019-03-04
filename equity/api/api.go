@@ -2,8 +2,10 @@ package api
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -163,16 +165,14 @@ func (a *API) buildHandler() {
 	walletEnable := false
 	m := http.NewServeMux()
 	m.Handle("/v1/version", jsonHandler(a.getVersion))
-
-	// TODO: fix cors problems
-	// m.Handle("/v1/compile/bin", jsonHandler(a.getBin))
-	// m.Handle("/v1/compile/shift", jsonHandler(a.getShift))
-	// m.Handle("/v1/compile/instance", jsonHandler(a.getInstance))
-	// m.Handle("/v1/compile/ast", jsonHandler(a.getAst))
-	m.HandleFunc("/v1/compile/bin", a.corsHandler)
-	m.HandleFunc("/v1/compile/shift", a.corsHandler)
-	m.HandleFunc("/v1/compile/instance", a.corsHandler)
-	m.HandleFunc("/v1/compile/ast", a.corsHandler)
+	m.Handle("/v1/compile/bin", jsonHandler(a.getBin))
+	m.Handle("/v1/compile/shift", jsonHandler(a.getShift))
+	m.Handle("/v1/compile/instance", jsonHandler(a.getInstance))
+	m.Handle("/v1/compile/ast", jsonHandler(a.getAst))
+	// m.HandleFunc("/v1/compile/bin", a.corsHandler)
+	// m.HandleFunc("/v1/compile/shift", a.corsHandler)
+	// m.HandleFunc("/v1/compile/instance", a.corsHandler)
+	// m.HandleFunc("/v1/compile/ast", a.corsHandler)
 	// 设置静态目录
 	path := "../ide/dist"
 	fsh := http.FileServer(http.Dir(path))
@@ -212,7 +212,20 @@ func alwaysError(err error) http.Handler {
 // latencyHandler take latency for the request url path, and redirect url path to wait-disable when wallet is closed
 func latencyHandler(m *http.ServeMux, walletEnable bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		fmt.Printf("method:%s, url:%s, origins:%s\n", req.Method, req.URL.Path, req.Header["Origin"])
 		// latency for the request url path
+		if len(req.Header["Origin"]) > 0 {
+			reqOrigin := req.Header["Origin"][0]
+			if strings.Index(reqOrigin, "localhost") != -1 || strings.Index(reqOrigin, "127.0.0.1") != -1 {
+				w.Header().Set("Access-Control-Allow-Origin", reqOrigin)
+			}
+		}
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+		if req.Method == "OPTIONS" {
+			fmt.Fprintf(w, string(""))
+			return
+		}
 		if l := latency(m, req); l != nil {
 			defer l.RecordSince(time.Now())
 		}

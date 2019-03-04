@@ -40,7 +40,7 @@ func (a *API) corsHandler(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, `{"status": "fail" }`)
 		return
 	}
-	fmt.Printf("url:%s, req:%v\n", req.URL.Path, t)
+	fmt.Printf("method: %s, url:%s, code-len:%d, args-len:%d\n", req.Method, req.URL.Path, len(t.Code), len(t.Args))
 	var ret Response
 	switch req.URL.Path {
 	case "/v1/compile/bin":

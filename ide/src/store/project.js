@@ -43,7 +43,6 @@ export default {
       state.selects.push(fileName)
     },
     deSelectFile(state, fileName) {
-      console.log("deselect")
       if (state.selects.length == 1 && state.selects[0] == fileName) {
         state.selects = []
         return
