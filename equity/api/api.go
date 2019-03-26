@@ -64,7 +64,6 @@ func FormatErrResp(err error) (response Response) {
 		response.Code = respErrFormatter[ErrDefault].ChainCode
 		response.Msg = respErrFormatter[ErrDefault].Message
 		response.ErrorDetail = err.Error()
-
 	}
 	return response
 }
@@ -177,6 +176,9 @@ func (a *API) buildHandler() {
 	path := "../ide/dist"
 	fsh := http.FileServer(http.Dir(path))
 	m.Handle("/", http.StripPrefix("/", fsh))
+
+	// 设置静态目录
+	m.Handle("/lib/", http.StripPrefix("/lib/", http.FileServer(http.Dir("../ide/lib"))))
 
 	handler := latencyHandler(m, walletEnable)
 	handler = gzip.Handler{Handler: handler}

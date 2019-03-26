@@ -9,16 +9,10 @@ ace.define("ace/mode/equity_highlight_rules",["require","exports","module","ace/
     var EquityHighlightRules = function(options) {
         var keywordMapper = this.createKeywordMapper({
             "variable.language":
-                "Array|Boolean|Date|Function|Iterator|Number|Object|RegExp|String|Proxy|"  + // Constructors
-                "Namespace|QName|XML|XMLList|"                                             + // E4X
-                "ArrayBuffer|Float32Array|Float64Array|Int16Array|Int32Array|Int8Array|"   +
-                "Uint16Array|Uint32Array|Uint8Array|Uint8ClampedArray|"                    +
-                "Error|EvalError|InternalError|RangeError|ReferenceError|StopIteration|"   + // Errors
-                "SyntaxError|TypeError|URIError|"                                          +
-                "decodeURI|decodeURIComponent|encodeURI|encodeURIComponent|eval|isFinite|" + // Non-constructor functions
-                "isNaN|parseFloat|parseInt|"                                               +
-                "JSON|Math|"                                                               + // Other
-                "this|arguments|prototype|window|document"                                 , // Pseudo
+                "Amount|Integer|"  + // integer
+                "Boolean|"                                 + // boolean
+                "String|Hash|Asset|PublicKey|Signature|Program|"  + // string
+                "this"                                     , // Pseudo
             "keyword":
                 "const|yield|import|get|set|async|await|" +
                 "break|case|catch|continue|default|delete|do|else|finally|for|function|" +
@@ -29,9 +23,9 @@ ace.define("ace/mode/equity_highlight_rules",["require","exports","module","ace/
             "storage.type":
                 "const|let|var|clause|function",
             "constant.language":
-                "null|Infinity|NaN|undefined",
+                "null",
             "support.function":
-                "alert",
+                "alert|abs|min|max|size|concat|concatpush|below|above|sha3|sha256|checkTxSig|checkTxMultiSig",
             "constant.language.boolean": "true|false"
         }, "identifier");
         var kwBeforeRe = "case|do|else|finally|in|instanceof|return|throw|try|typeof|yield|void";

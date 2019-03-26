@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
+	bytomErr "github.com/bytom/errors"
 	"github.com/equity/compiler"
 	equ "github.com/equity/equity/util"
 )
@@ -68,12 +68,12 @@ func (a *API) getBin(req *CompileReq) Response {
 	contracts, err := compiler.Compile(reader)
 	if err != nil {
 		fmt.Println("Compile contract failed:", err)
-		return NewErrorResponse(err)
+		return NewErrorResponse(bytomErr.Wrap(ErrCompileErr, err.Error()))
 	}
 
 	if len(contracts) == 0 {
 		fmt.Println("The contract is empty!")
-		return NewErrorResponse(errors.New("The contract is empty!"))
+		return NewErrorResponse(bytomErr.Wrap(ErrCompileErr, "The contract is empty!"))
 	}
 	bin := ""
 	// Print the result for all contracts
@@ -92,12 +92,12 @@ func (a *API) getShift(req *CompileReq) Response {
 	contracts, err := compiler.Compile(reader)
 	if err != nil {
 		fmt.Println("Compile contract failed:", err)
-		return NewErrorResponse(err)
+		return NewErrorResponse(bytomErr.Wrap(ErrCompileErr, err.Error()))
 	}
 
 	if len(contracts) == 0 {
 		fmt.Println("The contract is empty!")
-		return NewErrorResponse(errors.New("The contract is empty!"))
+		return NewErrorResponse(bytomErr.Wrap(ErrCompileErr, "The contract is empty!"))
 	}
 	result := ""
 	// Print the result for all contracts
@@ -106,7 +106,7 @@ func (a *API) getShift(req *CompileReq) Response {
 		clauseMap, err := equ.Shift(contract)
 		if err != nil {
 			fmt.Println("Statistics contract clause shift error:", err)
-			return NewErrorResponse(err)
+			return NewErrorResponse(bytomErr.Wrapf(ErrShiftErr, "Statistics contract clause shift error: %s", err))
 		}
 
 		for clause, shift := range clauseMap {
@@ -124,12 +124,12 @@ func (a *API) getInstance(req *CompileReq) Response {
 	contracts, err := compiler.Compile(reader)
 	if err != nil {
 		fmt.Println("Compile contract failed:", err)
-		return NewErrorResponse(err)
+		return NewErrorResponse(bytomErr.Wrap(ErrCompileErr, err.Error()))
 	}
 
 	if len(contracts) == 0 {
 		fmt.Println("The contract is empty!")
-		return NewErrorResponse(errors.New("The contract is empty!"))
+		return NewErrorResponse(bytomErr.Wrap(ErrCompileErr, "The contract is empty!"))
 	}
 	ins := ""
 	// Print the result for all contracts
@@ -144,17 +144,17 @@ func (a *API) getInstance(req *CompileReq) Response {
 			for _, param := range contract.Params {
 				usage = usage + " <" + param.Name + ">"
 			}
-			return NewErrorResponse(errors.New(fmt.Sprintf("%s\n\n", usage)))
+			return NewErrorResponse(bytomErr.Wrapf(ErrInstanceErr, "%s\n\n", usage))
 		}
 
 		contractArgs, err := equ.ConvertArguments(contract, req.Args[1:len(contract.Params)+1])
 		if err != nil {
-			return NewErrorResponse(errors.New(fmt.Sprintf("Convert arguments into contract parameters error: %s", err)))
+			return NewErrorResponse(bytomErr.Wrapf(ErrInstanceErr, "Convert arguments into contract parameters error: %s", err))
 		}
 
 		instantProg, err := equ.InstantiateContract(contract, contractArgs)
 		if err != nil {
-			return NewErrorResponse(errors.New(fmt.Sprintf("Instantiate contract error: %s", err)))
+			return NewErrorResponse(bytomErr.Wrapf(ErrInstanceErr, "Instantiate contract error: %s", err))
 		}
 		ins += hex.EncodeToString(instantProg)
 		if i != len(contracts)-1 {
@@ -172,19 +172,19 @@ func (a *API) getAst(req *CompileReq) Response {
 	contracts, err := compiler.Compile(reader)
 	if err != nil {
 		fmt.Println("Compile contract failed:", err)
-		return NewErrorResponse(err)
+		return NewErrorResponse(bytomErr.Wrap(ErrCompileErr, err.Error()))
 	}
 
 	if len(contracts) == 0 {
 		fmt.Println("The contract is empty!")
-		return NewErrorResponse(errors.New("The contract is empty!"))
+		return NewErrorResponse(bytomErr.Wrap(ErrCompileErr, "The contract is empty!"))
 	}
 	ast := "Ast:\n"
 	// Print the result for all contracts
 	for _, contract := range contracts {
 		rawData, err := equ.JSONMarshal(contract, true)
 		if err != nil {
-			return NewErrorResponse(errors.New(fmt.Sprintf("Marshal the struct of contract to json error: %s", err)))
+			return NewErrorResponse(bytomErr.Wrapf(ErrAstErr, "Marshal the struct of contract to json error: %s", err))
 		}
 		ast += fmt.Sprintf("%s\n", (string(rawData)))
 	}

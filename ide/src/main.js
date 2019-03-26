@@ -14,17 +14,14 @@ Vue.use(VueI18n)
 Vue.use(VueResource)
 
 const config = require("./utils/config.js").config()
-console.log(process.env)
-if (process.env.NODE_ENV == "development") {
-  Vue.http.options.root = "http://localhost:3000/v1"
-} else {
-  Vue.http.options.root = config.api
-}
+Vue.http.options.root = `${config.baseUrl}:${config.port}/${config.apiVersion}`
 
-import {Namespace} from './common/const.js'
+import {
+  Namespace
+} from './common/const.js'
 
 const i18n = new VueI18n({
-  locale: store.state[Namespace.SETTING].setting.lang || 'zh', 
+  locale: store.state[Namespace.SETTING].setting.lang || config.setting.defaultLang,
   messages: {
     'en': LangEN,
     'zh': LangZH,
@@ -41,7 +38,9 @@ new Vue({
   router,
   store,
   i18n,
-  components: { App },
+  components: {
+    App
+  },
   template: '<App/>'
 })
 

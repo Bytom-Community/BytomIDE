@@ -48,5 +48,6 @@ export default {
   },
   Request: {
     Error: 'Request Failed',
+    ParamMiss: 'Parameter Miss',
   },
 }

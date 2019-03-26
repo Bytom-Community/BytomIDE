@@ -48,5 +48,6 @@ export default {
   },
   Request: {
     Error: '请求失败',
+    ParamMiss: '参数缺失',
   },
 }

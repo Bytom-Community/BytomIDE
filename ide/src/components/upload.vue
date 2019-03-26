@@ -3,6 +3,7 @@
         action=""
         :multiple=true
         :limit="maxUploadFile"
+        accept=".eqt"
         :on-exceed="handleUploadExceed"
         :on-progress="handleUpload">
     <slot name="upload-item"></slot>

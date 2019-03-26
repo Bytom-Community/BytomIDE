@@ -1,14 +1,16 @@
 {
-    "api": "http://47.92.243.141:8080/v1",
-    "setting": {
-        "minFontSize": 10,
-        "defaultFontSize": 12,
-        "defaultMode": "default",
-        "defaultTheme": "textmate",
-        "defaultLang": "zh",
-        "defaultAutoSaveInterval": 0
-    },
-    "folder": {
-        "maxUploadNum": 10
-    }
+  "baseUrl": "http://47.92.243.141",
+  "port": 8080,
+  "apiVersion": "v1",
+  "setting": {
+    "minFontSize": 10,
+    "defaultFontSize": 12,
+    "defaultMode": "default",
+    "defaultTheme": "textmate",
+    "defaultLang": "en",
+    "defaultAutoSaveInterval": 0
+  },
+  "folder": {
+    "maxUploadNum": 10
+  }
 }

@@ -26,7 +26,7 @@ app.use(function (err, req, res, next) {
   next(err)
 })
 
-app.use('/', express.static(path.resolve(__dirname, 'dist/')))
+app.use('/', express.static(path.resolve(__dirname, 'src/')))
 
 //返回结果处理
 app.use(function (req, res, next) {
@@ -57,7 +57,7 @@ app.use(function (err, req, res, next) {
   })
 })
 
-const PORT = 8080
+const PORT = 3001
 const server = app.listen(PORT, function() {
   console.log('listen ', PORT)
 })

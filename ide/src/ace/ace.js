@@ -1,10 +1,12 @@
 var ace = require("ace-builds/src-noconflict/ace.js")
 ace.config.set('modePath', 'ace-builds/src-noconflict')
 ace.config.set('basePath', 'ace-builds/src-noconflict')
+ace.config.set('workerPath', 'ace-builds/src-noconflict')
 var editor = ace.edit('javascript-editor')
 editor.setShowPrintMargin(false)
-editor.getSession().setUseWorker(false)
+// editor.getSession().setUseWorker(false)
 require("ace-builds/src-noconflict/ext-language_tools.js")
+
 import {setFontSize} from "./editor.js"
 setFontSize(editor, '12pt')
 
