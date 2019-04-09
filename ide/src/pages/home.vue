@@ -50,14 +50,20 @@
     <div class="tools">
       <el-tabs v-model="activeTab" type="border-card" @tab-click="handleClick" class="tool-tab">
         <el-tab-pane label="CLI" name="cli" class="tool-pane">
-          <span>{{ $t('Tool.Operation') }}</span>
-          <el-select v-model="clicmd" :placeholder="$t('Tool.Command')" style="width:100px;" @change="cliret=''">
-            <el-option label="bin" value="bin"></el-option>
-            <el-option label="shift" value="shift"></el-option>
-            <el-option label="instance" value="instance"></el-option>
-            <el-option label="ast" value="ast"></el-option>
-          </el-select>
-          <el-button @click="compile">{{ $t('Tool.Excute') }}</el-button>
+          <el-row type="flex" align="middle">
+            <el-col :span="8"> <span>{{ $t('Tool.Operation') }}</span></el-col>
+            <el-col :span="16">
+              <el-select v-model="clicmd" :placeholder="$t('Tool.Command')" style="width:120px;" @change="cliret=''">
+                <el-option label="bin" value="bin"></el-option>
+                <el-option label="shift" value="shift"></el-option>
+                <el-option label="instance" value="instance"></el-option>
+                <el-option label="ast" value="ast"></el-option>
+              </el-select>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-button @click="compile" style="width: 100%">{{ $t('Tool.Excute') }}</el-button>
+          </el-row>
           <div class="tool-args" v-show="clicmd=='instance'">
             <span>{{ $t('Tool.Args') }}</span>
             <el-input class="tool-args-input" :placeholder="$t('Tool.InputArgs')" v-model="cliargs" clearable>
@@ -69,8 +75,12 @@
               :disabled="cliret.length==0"></el-input>
           </div>
         </el-tab-pane>
-        <el-tab-pane :label="$t('Tool.Deploy')" name="deploy">{{ $t('Tool.Deploy') }}</el-tab-pane>
-        <el-tab-pane :label="$t('Tool.Run')" name="run">{{ $t('Tool.Run') }}</el-tab-pane>
+        <el-tab-pane :label="$t('Tool.Deploy')" name="deploy">
+          <lock ref="lockPane" @submit="submitLockTx"></lock>
+        </el-tab-pane>
+        <el-tab-pane :label="$t('Tool.Run')" name="run">
+          <unlock ref="unlockPane"> </unlock>
+        </el-tab-pane>
       </el-tabs>
     </div>
 
@@ -82,6 +92,8 @@
   import folder from "../components/tree"
   import settingDialog from "../components/setting"
   import upload from "../components/upload"
+  import lock from "../components/lock"
+  import unlock from "../components/unlock"
   import {
     Namespace,
     Common
@@ -108,7 +120,9 @@
       editor,
       folder,
       settingDialog,
-      upload
+      upload,
+      lock,
+      unlock
     },
     data() {
       return {
@@ -338,7 +352,17 @@
         // auto save interval has updated
         this.runSaveCodeTimer()
       },
-      handleClick() {},
+      handleClick() {
+        switch (this.activeTab) {
+          case "deploy":
+            {
+              this.$refs.lockPane.init()
+            }
+          default:
+            {}
+        }
+        console.log('tab', this.activeTab)
+      },
       async compile() {
         if (!this.clicmd || this.clicmd == undefined || this.clicmd.length == 0) {
           this.$message(this.$t('Tool.Noop'))
@@ -419,6 +443,9 @@
           var FileSaver = require('file-saver')
           FileSaver.saveAs(content, "Contract.zip");
         })
+      },
+      submitLockTx(utxoid) {
+        this.$refs['unlockPane'].setUtxoid(utxoid)
       }
     }
   }
@@ -565,6 +592,10 @@
   img:hover {
     opacity: 0.7;
     cursor: pointer;
+  }
+
+  .el-row {
+    padding-bottom: 12px;
   }
 
 </style>

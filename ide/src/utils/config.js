@@ -36,6 +36,7 @@ const config = () => {
   addField(config, defaultCfg)
   if (process.env.NODE_ENV == "development") {
     config.baseUrl = 'http://localhost'
+    config.port = 3000
   }
   return config
 }

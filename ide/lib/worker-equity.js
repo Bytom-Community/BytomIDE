@@ -85,7 +85,8 @@
     window.require.modules[id] = {}; // prevent infinite loop on broken modules
     // UPDATE
     // importScripts(path);
-    importScripts("http://47.92.243.141:8080/lib/es5-shim.js");
+    // importScripts("http://47.92.243.141:8080/lib/es5-shim.js");
+    importScripts("http://localhost:3000/lib/es5-shim.js");
 
     return window.require(parentId, id);
   };

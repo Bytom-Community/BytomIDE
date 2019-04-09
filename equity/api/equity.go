@@ -179,7 +179,7 @@ func (a *API) getAst(req *CompileReq) Response {
 		fmt.Println("The contract is empty!")
 		return NewErrorResponse(bytomErr.Wrap(ErrCompileErr, "The contract is empty!"))
 	}
-	ast := "Ast:\n"
+	ast := `"Ast":`
 	// Print the result for all contracts
 	for _, contract := range contracts {
 		rawData, err := equ.JSONMarshal(contract, true)

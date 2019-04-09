@@ -2,4 +2,5 @@ ide/node_modules/*
 test/*
 equity/equity
 equity/api/*_test.go
+ide/src/components/template.vue
 
