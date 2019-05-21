@@ -47,10 +47,12 @@ export default {
     Result: 'Result',
   },
   Request: {
+    WrongAccount: 'Current Account is diffrent from Wallet',
     Error: 'Request Failed',
     ParamMiss: 'Parameter Miss',
   },
   Lock: {
+    UseByonePrompt: 'Please install Byone wallet first. After installed, please refresh',
     NetType: 'Net Type',
     Restore: 'Restore Wallet',
     WalletFile: 'Wallet File',

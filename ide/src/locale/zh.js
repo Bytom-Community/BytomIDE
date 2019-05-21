@@ -47,10 +47,12 @@ export default {
     Result: '运行结果',
   },
   Request: {
+    WrongAccount: '当前账号与钱包账号不一致',
     Error: '请求失败',
     ParamMiss: '参数缺失',
   },
   Lock: {
+    UseByonePrompt: '请先安装Byone插件钱包, 安装完成后请刷新浏览器',
     NetType: '网络',
     Restore: '恢复钱包',
     WalletFile: '钱包文件',

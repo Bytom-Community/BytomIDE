@@ -168,6 +168,8 @@ func (a *API) buildHandler() {
 	m.Handle("/v1/compile/shift", jsonHandler(a.getShift))
 	m.Handle("/v1/compile/instance", jsonHandler(a.getInstance))
 	m.Handle("/v1/compile/ast", jsonHandler(a.getAst))
+	m.Handle("/v1/tool/decode-program", jsonHandler(a.decodeProgram))
+	m.Handle("/v1/tool/addr-to-script", jsonHandler(a.addressToScript))
 	// m.HandleFunc("/v1/compile/bin", a.corsHandler)
 	// m.HandleFunc("/v1/compile/shift", a.corsHandler)
 	// m.HandleFunc("/v1/compile/instance", a.corsHandler)

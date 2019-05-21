@@ -76,10 +76,10 @@
           </div>
         </el-tab-pane>
         <el-tab-pane :label="$t('Tool.Deploy')" name="deploy">
-          <lock ref="lockPane" @submit="submitLockTx"></lock>
+          <lock class="lock-pane" ref="lockPane" @submit="submitLockTx"></lock>
         </el-tab-pane>
         <el-tab-pane :label="$t('Tool.Run')" name="run">
-          <unlock ref="unlockPane"> </unlock>
+          <unlock class="unlock-pane" ref="unlockPane"> </unlock>
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -113,6 +113,9 @@
     setTheme,
     setKeybinding
   } from "../ace/editor.js"
+  import {
+    User
+  } from "../models/user.js"
   const config = require("../utils/config.js").config()
   export default {
     name: 'home',
@@ -144,6 +147,8 @@
       this.createDemoFile()
       await this.initEditor()
       this.runSaveCodeTimer()
+      let usrMgr = new User(this.$store)
+      usrMgr.checkUsr()
     },
     methods: {
       createDemoFile() {
@@ -354,12 +359,10 @@
       },
       handleClick() {
         switch (this.activeTab) {
-          case "deploy":
-            {
-              this.$refs.lockPane.init()
-            }
-          default:
-            {}
+          case "deploy": {
+            this.$refs.lockPane.init()
+          }
+          default: {}
         }
         console.log('tab', this.activeTab)
       },
@@ -561,6 +564,17 @@
     width: 20%;
     height: calc(90vh+30px);
 
+  }
+
+  .lock-pane {
+    height: 84vh;
+    overflow: scroll;
+  }
+
+
+  .unlock-pane {
+    height: 84vh;
+    overflow: scroll;
   }
 
   .tool-tab {

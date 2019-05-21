@@ -1,5 +1,8 @@
 <template>
-  <div class="unlock-pane">
+  <div class="lock-pane" v-if="!isLogin">
+    {{ $t('Lock.UseByonePrompt')}}
+  </div>
+  <div class="unlock-pane" v-loading="loading" v-else>
     <el-row type="flex" align="middle">
       <el-col :span="6">
         <div>{{ $t('Lock.Utxoid')}}:</div>
@@ -130,16 +133,15 @@
           <template slot="prepend">{{$t('Lock.Amount')}}</template>
         </el-input>
       </el-row>
-      <el-row type="flex" align="middle">
+      <!-- <el-row type="flex" align="middle">
         <el-col :span="6">
           <div>{{ $t('Lock.AccountPassword')}}:</div>
         </el-col>
         <el-col :span="18">
-          <!-- TODO: show password if needed -->
           <el-input type="password" v-model="unlock.password" :placeholder="$t('Lock.AccountPasswordPrompt')">
           </el-input>
         </el-col>
-      </el-row>
+      </el-row> -->
 
       <el-row type="flex" align="middle" style="border-bottom:1px solid; border-bottom-color: rgb(220, 223, 230); ">
         <el-col :span="6">
@@ -168,20 +170,25 @@
   </div>
 </template>
 <script>
+  import * as analyzer from "../models/analyzer.js"
   import {
     Namespace
   } from "../common/const.js"
   import {
-    Bytom
-  } from "../utils/bytom.js"
+    BytomAPI
+  } from "../models/byone.js"
+  import {
+    calculateBytomFee
+  } from "../utils/util.js"
   export default {
     name: 'unlock',
     components: {},
     data() {
       return {
+        loading: false,
         utxoid: '',
         utxo: null,
-        bytom: null,
+        bytomAPI: null,
         args: [],
         ast: null,
         clauses: [],
@@ -194,9 +201,12 @@
       alias() {
         return this.$store.state[Namespace.USER].alias
       },
+      isLogin() {
+        return this.$store.state[Namespace.USER].isLogin
+      }
     },
     created() {
-      this.bytom = new Bytom()
+      this.bytomAPI = new BytomAPI()
     },
     methods: {
       init() {
@@ -227,48 +237,26 @@
           this.$message(this.$t('Unlock.CodeIsEmpty'))
           return
         }
-
-        let ret = await this.bytom.listutxo(this.utxoid)
-        if (!ret || !ret.length) {
+        this.loading = true
+        try {
+          let current = await this.bytomAPI.currentAccount()
+          let utxo = await this.bytomAPI.getUtxoFromId(current.guid,
+            this.utxoid)
+          this.utxo = analyzer.inheritUtxo(utxo, this.$store.state[Namespace.USER].assets)
+        } catch (e) {
+          console.log('[ERROR] bytom api request err', e)
           this.$message(this.$t('Unlock.DecodeFailed'))
+        }
+        this.loading = false
+        let instructions = await this.bytomAPI.decodeProgram(this.utxo.program).catch((e) => {
+          console.log('[ERROR] decode program', err)
+        })
+        if (!instructions) {
           return
         }
-        this.utxo = ret[0]
-        let decodeRet = await this.bytom.decodeProgram(this.utxo.program)
-        if (!decodeRet) {
-          return
-        }
-        let byteCode = ''
-        let parts = decodeRet.instructions.split("\n")
-        for (let part of parts) {
-          if (part.indexOf('DEPTH') != -1) {
-            if (parts.indexOf(part) + 1 >= parts.length) {
-              break
-            }
-            let byteCodeValueType = (parts[parts.indexOf(part) + 1]).split(" ")
-            if (!byteCodeValueType || byteCodeValueType.length != 2) {
-              break
-            }
-            byteCode = byteCodeValueType[1].trim()
-            break
-          }
-          let valueType = part.split(" ")
-          let type = valueType[0].trim()
-          let value = valueType[1].trim()
-          if (type == "DATA_32" || type == "DATA_22") {
-            this.args.unshift({
-              "string": value
-            })
-          } else if (type == "DATA_4") {
-            this.args.unshift({
-              "integer": parseInt('0x' + value.match(/../g).reverse().join(''))
-            })
-          } else {
-            this.args.unshift({
-              "boolean": value
-            })
-          }
-        }
+        let decodedResult = analyzer.decodeInstructions(instructions)
+        let byteCode = decodedResult.byteCode
+        this.args = decodedResult.args
         const astRet = await this.$http.post(`compile/ast`, {
           Code: code
         })
@@ -285,7 +273,6 @@
           return
         }
         this.ast = astObj.Ast
-
         for (let i in this.ast.params) {
           let astParam = this.ast.params[i]
           this.unlock.args.push({
@@ -324,8 +311,6 @@
             })
           }
         }
-
-
         if (clauseObj.values) {
           for (let v of clauseObj.values) {
             if (!v.hasOwnProperty('program')) {
@@ -405,34 +390,22 @@
         this.setUnlockPropertiesOfClause()
       },
       async submit() {
-        let bytomFee = 0
-        switch (this.unlock.gasType) {
-          case "BTM":
-            {
-              bytomFee = parseInt(parseFloat(this.unlock.gas) * 100000000)
-              break
-            }
-          case "mBTM":
-            {
-              bytomFee = parseInt(parseFloat(this.unlock.gas) * 1000)
-              break
-            }
-          case "NEU":
-            {
-              bytomFee = parseInt(this.unlock.gas)
-              break
-            }
-        }
-
-        this.txid = await this.bytom.unlock(this.utxo, this.clauses.indexOf(this.unlock.clause), this.unlock.args,
-          this.unlock.params, this.unlock.required,
-          this.unlock.account, this.unlock.password, bytomFee).catch((e) => {
-          console.log('e', e)
+        let bytomFee = calculateBytomFee(this.unlock.gasType, this.unlock.gas)
+        let resp = await this.bytomAPI.unlock(this.utxo, this.clauses.indexOf(this.unlock.clause), this.unlock,
+          bytomFee).catch((e) => {
+          console.log('[ERROR] unlock err', e)
           this.$message(this.$t('Unlock.SubmitFailed'))
         })
+        if (!resp || resp.action != "success") {
+          this.$message(this.$t('Unlock.SubmitFailed'))
+          return
+        }
+        if (resp.message.code != 200) {
+          this.$message(resp.message.msg)
+          return
+        }
         this.$message(this.$t('Unlock.SubmitSuccess'))
-
-
+        this.txid = resp.message.result.data.transaction_hash
       }
     }
   }

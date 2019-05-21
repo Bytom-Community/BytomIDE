@@ -3,4 +3,6 @@ test/*
 equity/equity
 equity/api/*_test.go
 ide/src/components/template.vue
+equity-linux*
+ide/src/test/*
 

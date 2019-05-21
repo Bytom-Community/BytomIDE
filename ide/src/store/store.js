@@ -13,7 +13,7 @@ import {
 import VuexPersistence from 'vuex-persist'
 const vuexLocal = new VuexPersistence({
   storage: window.localStorage,
-  modules: [Namespace.PROJECT, Namespace.SETTING, Namespace.USER],
+  modules: [Namespace.PROJECT, Namespace.SETTING],
 })
 let modules = {}
 

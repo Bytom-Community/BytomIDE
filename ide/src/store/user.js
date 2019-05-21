@@ -4,6 +4,7 @@ export default {
     alias: [],
     assets: [],
     assetObj: {},
+    isLogin: false
   },
   mutations: {
     setAlias(state, alias) {
@@ -15,5 +16,8 @@ export default {
     setAssetObj(state, assetObj) {
       state.assetObj = assetObj
     },
+    setIsLogin(state, is) {
+      state.isLogin = is
+    }
   }
 }
