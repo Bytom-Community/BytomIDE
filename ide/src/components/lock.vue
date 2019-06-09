@@ -91,9 +91,9 @@
         <div class="param-pk" v-if="p.type == ParamType.PublicKey && lock.paramAnswer">
           <el-row>
             <el-radio-group v-model="lock.paramAnswer[i].inputType">
-              <el-radio :label="ParamInputType.GeneratePublicKey">
+              <!-- <el-radio :label="ParamInputType.GeneratePublicKey">
                 {{$t('Lock.GenPk')}}
-              </el-radio>
+              </el-radio> -->
               <el-radio :label="ParamInputType.InputPublicKey">
                 {{$t('Lock.InputPk')}}
               </el-radio>
@@ -118,9 +118,9 @@
         <div class="param-pg" v-if="p.type == ParamType.Program && lock.paramAnswer">
           <el-row>
             <el-radio-group v-model="lock.paramAnswer[i].inputType">
-              <el-radio :label="ParamInputType.GenerateProgram">
+              <!-- <el-radio :label="ParamInputType.GenerateProgram">
                 {{$t('Lock.GenPg')}}
-              </el-radio>
+              </el-radio> -->
               <el-radio :label="ParamInputType.InputProgram">
                 {{$t('Lock.InputPg')}}
               </el-radio>

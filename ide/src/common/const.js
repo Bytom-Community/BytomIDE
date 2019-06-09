@@ -4,6 +4,7 @@ const Namespace = {
   EDITOR: "editor",
   SETTING: 'setting',
   USER: 'user',
+  LOG: "log",
 }
 
 // common 
@@ -35,9 +36,17 @@ const ParamType = {
   String: "String"
 }
 
+const LogLevel = {
+  Debug: 1,
+  Info: 2,
+  Warn: 3,
+  Error: 4
+}
+
 export {
   Namespace,
   Common,
   ParamInputType,
-  ParamType
+  ParamType,
+  LogLevel
 }

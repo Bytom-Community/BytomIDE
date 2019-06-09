@@ -7,6 +7,7 @@ import project from './project'
 import editor from './editor'
 import setting from './setting'
 import user from './user'
+import log from './log'
 import {
   Namespace
 } from "../common/const.js"
@@ -21,6 +22,7 @@ modules[Namespace.PROJECT] = project
 modules[Namespace.EDITOR] = editor
 modules[Namespace.SETTING] = setting
 modules[Namespace.USER] = user
+modules[Namespace.LOG] = log
 
 export default new vuex.Store({
   modules: modules,

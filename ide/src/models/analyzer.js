@@ -57,7 +57,7 @@ const makeParamAnswers = (params) => {
       case ParamType.PublicKey: {
         paramAnswer.push({
           type: param.type,
-          inputType: ParamInputType.GeneratePublicKey,
+          inputType: ParamInputType.InputPublicKey,
           alias: '',
           publicKey: '',
         })
@@ -66,7 +66,7 @@ const makeParamAnswers = (params) => {
       case ParamType.Program: {
         paramAnswer.push({
           type: param.type,
-          inputType: ParamInputType.GenerateProgram,
+          inputType: ParamInputType.InputProgram,
           alias: '',
           program: '',
         })

@@ -45,7 +45,11 @@
           </div>
         </div>
       </div>
-      <editor class="editor"></editor>
+      <div :class="{ 'editor-normal': showConsole, 'editor-expand': !showConsole }">
+        <editor style="width: 100%; height: 100%;"></editor>
+      </div>
+
+      <log :class="{ 'console-expand': showConsole, 'console-hide': !showConsole }" @close="closeConsole"></log>
     </div>
     <div class="tools">
       <el-tabs v-model="activeTab" type="border-card" @tab-click="handleClick" class="tool-tab">
@@ -89,6 +93,7 @@
 </template>
 <script>
   import editor from '../components/editor'
+  import log from "../components/log"
   import folder from "../components/tree"
   import settingDialog from "../components/setting"
   import upload from "../components/upload"
@@ -109,6 +114,9 @@
     Ticker
   } from "../utils/util.js"
   import {
+    Logger
+  } from "../utils/log.js"
+  import {
     setFontSize,
     setTheme,
     setKeybinding
@@ -121,6 +129,7 @@
     name: 'home',
     components: {
       editor,
+      log,
       folder,
       settingDialog,
       upload,
@@ -136,6 +145,8 @@
         cliret: '',
         cliargs: '',
         codeTicker: null,
+        log: null,
+        showConsole: true,
       }
     },
     computed: {
@@ -144,6 +155,7 @@
       },
     },
     async created() {
+      this.log = new Logger(this.$store)
       this.createDemoFile()
       await this.initEditor()
       this.runSaveCodeTimer()
@@ -364,7 +376,6 @@
           }
           default: {}
         }
-        console.log('tab', this.activeTab)
       },
       async compile() {
         if (!this.clicmd || this.clicmd == undefined || this.clicmd.length == 0) {
@@ -398,11 +409,9 @@
           }
           this.cliret = ret.body.data[this.clicmd]
         } catch (e) {
-          console.log(e)
+          this.log.error(`request compile err ${e}`)
           this.$message(this.$t('Request.Error'))
         }
-
-
       },
       handleUpload(name, content) {
         let p = this.$store.state[Namespace.PROJECT].projects[0]
@@ -449,6 +458,9 @@
       },
       submitLockTx(utxoid) {
         this.$refs['unlockPane'].setUtxoid(utxoid)
+      },
+      closeConsole(closed) {
+        this.showConsole = !closed
       }
     }
   }
@@ -463,13 +475,13 @@
 
   .folder-container {
     width: 13%;
-    height: calc(90vh+30px);
+    height: calc(100vh - 20px);
     /* border: 1px solid; */
   }
 
   .folder {
     width: 100%;
-    height: 90vh;
+    height: calc(100vh - 50px);
   }
 
   .folder-menu {
@@ -495,14 +507,30 @@
 
   .editor-container {
     width: 67%;
-    height: calc(90vh+30px);
+    height: calc(100vh - 20px);
+    /* height: calc(90vh+30px); */
     padding-right: 10px;
+    /* border: 1px solid; */
   }
 
-  .editor {
+  .editor-normal {
     width: 100%;
-    height: 90vh;
-    /* border:1px solid; */
+    height: 75vh;
+    /* border: 1px solid; */
+  }
+
+  .editor-expand {
+    width: 100%;
+    height: calc(95vh - 60px);
+  }
+
+  .console-expand {
+    height: 20vh;
+    /* border: 1px solid; */
+  }
+
+  .console-hide {
+    height: 40px;
   }
 
   .editor-header {
