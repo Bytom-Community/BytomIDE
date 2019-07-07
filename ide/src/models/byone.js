@@ -18,6 +18,10 @@ class BytomAPI {
     this.localRpc = _localRpc
   }
   currentAccount = async () => {
+    if (window.bytom.default_account) {
+      return window.bytom.default_account
+    }
+    console.log('window.bytom', window.bytom)
     let acc = await window.bytom.request("currentAccount").catch((e) => {
       console.log('[ERROR] get current account err', e)
       throw e
@@ -211,6 +215,9 @@ class BytomAPI {
     return match
   }
   listAccountAlias = async () => {
+    if (window.bytom.default_account.alias) {
+      return [window.bytom.default_account.alias]
+    }
     let accs = await window.bytom.request("listAllAccount").catch((e) => {
       console.log('[ERROR] list all account err', e)
       throw e
@@ -223,6 +230,13 @@ class BytomAPI {
   }
 
   getGuid = async (alias) => {
+    let current = await this.currentAccount().catch((e) => {
+      console.log('[ERROR] get current account err', e)
+      throw e
+    })
+    if (current) {
+      return current.accountId
+    }
     let accs = await window.bytom.request("listAllAccount").catch((e) => {
       console.log('[ERROR] list all account err', e)
       throw e
@@ -250,7 +264,7 @@ class BytomAPI {
     let ret = await axios.post(`api/v1/btm/account/list-addresses?limit=${limit}&start=${start}`, pm).catch((e) => {
       throw e
     })
-    if (!ret || !ret.data.code == 200 || !ret.data.result.data) {
+    if (!ret || ret.data.code != 200 || !ret.data.result.data) {
       return []
     }
     let assets = []
@@ -285,6 +299,15 @@ class BytomAPI {
     return assets
   }
   getBalance = async (guid, assetId) => {
+    let current = await this.currentAccount()
+    console.log('current', current)
+    if (current && current.balances) {
+      for (let bal of current.balances) {
+        if (bal.asset == assetId) {
+          return bal.balance
+        }
+      }
+    }
     let bal = await window.bytom.request('balance', {
       id: assetId,
       guid: guid
@@ -337,21 +360,19 @@ class BytomAPI {
     if (typeof window.bytom === 'undefined') {
       throw `window.bytom is nil`
     }
-    let account = await window.bytom.request("currentAccount").catch((e) => {
+    let account = await this.currentAccount().catch((e) => {
       throw e
     })
     if (!account) {
       throw 'current account is nil'
     }
-    let bal = await window.bytom.request('balance', {
-      id: assetId,
-      guid: account.guid
-    }).catch((e) => {
+    let bal = await this.getBalance(account.accountId, assetId).catch((e) => {
       throw e
     })
     if (bal < assetAmount) {
       throw 'insufficient balance'
     }
+    console.log("account, bal", account, bal)
     let utxos = await this.listUtxos(assetId, account.address)
     if (!utxos || !utxos.length) {
       throw `insufficient utxo`
@@ -372,26 +393,28 @@ class BytomAPI {
         break
       }
     }
-    let ouput = [{
+    let output = [{
       "amount": assetAmount,
       "asset": assetId,
       "control_program": contractProgram,
       "type": "control_program"
     }]
     if (accumulative > assetAmount) {
-      ouput.push({
+      output.push({
         "amount": accumulative - assetAmount,
         "asset": assetId,
         "address": account.address,
         "type": "control_address"
       })
     }
-    let ret = await window.bytom.advancedTransfer(
+    let advancedTxParams = {
       input,
-      ouput,
-      bytomFee,
-      [],
-      1
+      output,
+      gas: bytomFee,
+      confirmations: 1,
+    }
+    let ret = await window.bytom.send_advanced_transaction(
+      advancedTxParams
     ).catch((err) => {
       console.log("[ERROR] advancedTransfer err", err)
       throw err
@@ -408,15 +431,13 @@ class BytomAPI {
       "output_id": utxo.id
     }
     input.push(spendUtxo)
-    let accs = await window.bytom.request("listAllAccount").catch((e) => {
-      console.log('[ERROR] listAllAccount err', e)
+    let current = await this.currentAccount().catch((e) => {
+      console.log('[ERROR] currentAccount err', e)
       throw e
     })
     let unlockAddr
-    for (let acc of accs) {
-      if (acc.alias == unlock.account) {
-        unlockAddr = acc.address
-      }
+    if (current.alias == unlock.account) {
+      unlockAddr = current.address
     }
     let output = []
     let unlockOutput = {
@@ -439,13 +460,16 @@ class BytomAPI {
         value: clauseIndex
       })
     }
-
-    let ret = await window.bytom.advancedTransfer(
+    let advancedTxParams = {
       input,
       output,
-      bytomFee,
       args,
-      1
+      gas: bytomFee,
+      confirmations: 1,
+    }
+
+    let ret = await window.bytom.send_advanced_transaction(
+      advancedTxParams
     ).catch((err) => {
       console.log("[ERROR] advancedTransfer err", err)
       throw err

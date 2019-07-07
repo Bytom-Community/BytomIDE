@@ -223,8 +223,11 @@
 </template>
 <script>
   import {
+    Logger
+  } from "../utils/log.js"
+  import {
     sleep,
-    calculateBytomFee
+    calculateBytomFee,
   } from "../utils/util.js"
   import {
     Bytom
@@ -242,6 +245,7 @@
     testLock
   } from "../models/byone.js"
   import * as analyzer from "../models/analyzer.js"
+  let log
   export default {
     name: 'lock',
     components: {},
@@ -292,6 +296,7 @@
       }
     },
     async created() {
+      log = new Logger(this.$store)
       this.assetFrom = this.$t('Lock.SelectAsset')
       this.bytomAPI = new BytomAPI()
     },
@@ -309,7 +314,7 @@
             amount: 0,
           },
           paramAnswer: null,
-          gas: 0,
+          gas: 0.02,
           gasType: 'BTM',
         }
         this.lockResult = {
@@ -420,6 +425,7 @@
           argValues.push(arg[Object.keys(arg)[0]])
         }
         const contractProgram = await this.bytomAPI.getInstance(codeToStr, argValues).catch((e) => {
+          log.error("GetContractProgram Error: " + e)
           throw e
         })
         if (!contractProgram) {
@@ -437,23 +443,22 @@
             console.log("[ERROR] submit err ", e)
             this.$message(this.$t('Lock.SubmitFailed'))
           })
-        if (!lockRet || lockRet.action != "success") {
+        if (!lockRet || !lockRet.transaction_hash) {
           this.$message(this.$t('Lock.SubmitFailed'))
           return
         }
-        if (lockRet.message.code != 200) {
-          this.$message(lockRet.message.msg)
-          return
-        }
-        this.lockResult.txid = lockRet.message.result.data.transaction_hash
+        this.lockResult.txid = lockRet.transaction_hash
         this.$message(this.$t('Lock.SubmitSuccess'))
         this.lockResult.utxoid = await this.bytomAPI.findUtxoid(this.lock.lockAsset.id, this.lockResult
           .controlProgram, this.lock.lockAsset.amount).catch((e) => {
-          console.log('[ERROR] utxoid err', e)
+          log.error('find utxoid err', e)
         })
         if (!this.lockResult.utxoid) {
           return
         }
+        log.info("ControlProgram: " + this.lockResult.controlProgram)
+        log.info("TXID: " + this.lockResult.txid)
+        log.info("UTXOID: " + this.lockResult.utxoid)
         this.$emit('submit', this.lockResult.utxoid)
       }
     }

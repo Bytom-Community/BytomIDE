@@ -49,7 +49,8 @@
         <editor style="width: 100%; height: 100%;"></editor>
       </div>
 
-      <log :class="{ 'console-expand': showConsole, 'console-hide': !showConsole }" @close="closeConsole"></log>
+      <logview :class="{ 'console-expand': showConsole, 'console-hide': !showConsole }" @close="closeConsole">
+      </logview>
     </div>
     <div class="tools">
       <el-tabs v-model="activeTab" type="border-card" @tab-click="handleClick" class="tool-tab">
@@ -93,7 +94,7 @@
 </template>
 <script>
   import editor from '../components/editor'
-  import log from "../components/log"
+  import logview from "../components/log"
   import folder from "../components/tree"
   import settingDialog from "../components/setting"
   import upload from "../components/upload"
@@ -125,11 +126,12 @@
     User
   } from "../models/user.js"
   const config = require("../utils/config.js").config()
+  let log
   export default {
     name: 'home',
     components: {
       editor,
-      log,
+      logview,
       folder,
       settingDialog,
       upload,
@@ -145,7 +147,6 @@
         cliret: '',
         cliargs: '',
         codeTicker: null,
-        log: null,
         showConsole: true,
       }
     },
@@ -155,7 +156,7 @@
       },
     },
     async created() {
-      this.log = new Logger(this.$store)
+      log = new Logger(this.$store)
       this.createDemoFile()
       await this.initEditor()
       this.runSaveCodeTimer()
@@ -409,7 +410,7 @@
           }
           this.cliret = ret.body.data[this.clicmd]
         } catch (e) {
-          this.log.error(`request compile err ${e}`)
+          log.error(`request compile err` + e)
           this.$message(this.$t('Request.Error'))
         }
       },

@@ -170,6 +170,9 @@
   </div>
 </template>
 <script>
+  import {
+    Logger
+  } from "../utils/log.js"
   import * as analyzer from "../models/analyzer.js"
   import {
     Namespace
@@ -180,6 +183,7 @@
   import {
     calculateBytomFee
   } from "../utils/util.js"
+  let log
   export default {
     name: 'unlock',
     components: {},
@@ -206,6 +210,7 @@
       }
     },
     created() {
+      log = new Logger(this.$store)
       this.bytomAPI = new BytomAPI()
     },
     methods: {
@@ -218,7 +223,7 @@
           clause: '',
           account: '',
           password: '',
-          gas: 0,
+          gas: 0.02,
           gasType: 'BTM',
           params: [],
           required: [],
@@ -240,7 +245,7 @@
         this.loading = true
         try {
           let current = await this.bytomAPI.currentAccount()
-          let utxo = await this.bytomAPI.getUtxoFromId(current.guid,
+          let utxo = await this.bytomAPI.getUtxoFromId(current.accountId,
             this.utxoid)
           this.utxo = analyzer.inheritUtxo(utxo, this.$store.state[Namespace.USER].assets)
         } catch (e) {
@@ -396,16 +401,13 @@
           console.log('[ERROR] unlock err', e)
           this.$message(this.$t('Unlock.SubmitFailed'))
         })
-        if (!resp || resp.action != "success") {
+        if (!resp || !resp.transaction_hash) {
           this.$message(this.$t('Unlock.SubmitFailed'))
           return
         }
-        if (resp.message.code != 200) {
-          this.$message(resp.message.msg)
-          return
-        }
         this.$message(this.$t('Unlock.SubmitSuccess'))
-        this.txid = resp.message.result.data.transaction_hash
+        this.txid = resp.transaction_hash
+        log.info("unlock transaction hash: " + this.txid)
       }
     }
   }
