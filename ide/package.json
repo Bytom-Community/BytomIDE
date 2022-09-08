@@ -22,7 +22,7 @@
     "express": "^4.16.4",
     "express-di": "^5.0.0",
     "file-saver": "^2.0.1",
-    "jszip": "^3.2.0",
+    "jszip": "^3.7.0",
     "moment": "^2.24.0",
     "sl-vue-tree": "^1.8.4",
     "vue": "^2.5.2",
