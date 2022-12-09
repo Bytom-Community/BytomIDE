@@ -19,7 +19,7 @@
     "bytom-js-sdk": "^1.4.0",
     "element-ui": "^2.5.4",
     "es5-shim": "^4.5.12",
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "express-di": "^5.0.0",
     "file-saver": "^2.0.1",
     "jszip": "^3.2.0",
